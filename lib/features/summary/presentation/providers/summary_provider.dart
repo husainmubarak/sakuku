@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../transaction/data/models/transaction_model.dart';
 import '../../../transaction/presentation/providers/transaction_provider.dart';
 
-// Class penampung hasil kalkulasi
 class FinancialSummary {
   final double totalIncome;
   final double totalExpense;
@@ -17,10 +16,11 @@ class FinancialSummary {
   });
 }
 
-// Provider yang membaca data dari transactionProvider
-final summaryProvider = Provider((ref) {
-  // ref.watch mendengarkan perubahan transaksi secara real-time
-  final transactions = ref.watch(transactionProvider);
+final summaryProvider = Provider<FinancialSummary>((ref) {
+  final asyncTransactions = ref.watch(transactionProvider);
+  
+  // Ambil data jika sudah ter-load (jika loading/error default ke list kosong)
+  final transactions = asyncTransactions.value ?? [];
 
   double income = 0;
   double expense = 0;

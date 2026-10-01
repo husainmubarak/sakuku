@@ -1,55 +1,49 @@
 // lib/features/transaction/presentation/providers/transaction_provider.dart
 
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/models/transaction_model.dart';
+import '../../data/repositories/transaction_repository.dart';
 
-class TransactionNotifier extends Notifier<List<TransactionModel>> {
+// Provider untuk instance TransactionRepository
+final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
+  return TransactionRepository(Supabase.instance.client);
+});
+
+// AsyncNotifier untuk mengelola AsyncValue<List<TransactionModel>>
+class TransactionNotifier extends AsyncNotifier<List<TransactionModel>> {
   @override
-  List<TransactionModel> build() {
-    // Memberikan 2 data dummy awal agar tampilan tidak kosong saat dites
-    return [
-      TransactionModel(
-        id: '1',
-        title: 'Gaji Bulanan',
-        amount: 5000000,
-        type: TransactionType.income,
-        date: DateTime.now(),
-      ),
-      TransactionModel(
-        id: '2',
-        title: 'Beli Kopi & Makan',
-        amount: 45000,
-        type: TransactionType.expense,
-        date: DateTime.now(),
-      ),
-    ];
+  FutureOr<List<TransactionModel>> build() async {
+    // Ambil data transaksi dari Supabase saat pertama kali Provider di-watch
+    return ref.read(transactionRepositoryProvider).fetchTransactions();
   }
 
-  // Fungsi Tambah Transaksi Baru
-  void addTransaction({
+  // Tambah transaksi
+  Future<void> addTransaction({
     required String title,
     required double amount,
     required TransactionType type,
-  }) {
-    final newTransaction = TransactionModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: title,
-      amount: amount,
-      type: type,
-      date: DateTime.now(),
-    );
-
-    // Memperbarui state dengan list baru (Immutability)
-    state = [newTransaction, ...state];
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final repo = ref.read(transactionRepositoryProvider);
+      await repo.addTransaction(title: title, amount: amount, type: type);
+      return repo.fetchTransactions();
+    });
   }
 
-  // Fungsi Hapus Transaksi
-  void deleteTransaction(String id) {
-    state = state.where((item) => item.id != id).toList();
+  // Hapus transaksi
+  Future<void> deleteTransaction(String id) async {
+    state = await AsyncValue.guard(() async {
+      final repo = ref.read(transactionRepositoryProvider);
+      await repo.deleteTransaction(id);
+      return repo.fetchTransactions();
+    });
   }
 }
 
-// Global Provider
-final transactionProvider = NotifierProvider<TransactionNotifier, List<TransactionModel>>(() {
+// Global AsyncNotifierProvider
+final transactionProvider = AsyncNotifierProvider<TransactionNotifier, List<TransactionModel>>(() {
   return TransactionNotifier();
 });
