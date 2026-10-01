@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/summary_provider.dart';
+import '../widgets/monthly_chart.dart'; // Import widget grafik
 
 class SummaryScreen extends ConsumerWidget {
   const SummaryScreen({super.key});
@@ -62,7 +63,6 @@ class SummaryScreen extends ConsumerWidget {
             // Card Pemasukan & Pengeluaran
             Row(
               children: [
-                // Pemasukan
                 Expanded(
                   child: Card(
                     color: Colors.green.shade50,
@@ -106,8 +106,6 @@ class SummaryScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-
-                // Pengeluaran
                 Expanded(
                   child: Card(
                     color: Colors.red.shade50,
@@ -152,6 +150,10 @@ class SummaryScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+
+            // WIDGET GRAFIK BULANAN DITAMBAHKAN DI SINI
+            MonthlyChart(monthlyData: summary.monthlyStats),
           ],
         ),
       ),
