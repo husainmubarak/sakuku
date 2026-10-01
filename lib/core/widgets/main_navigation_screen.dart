@@ -12,7 +12,6 @@ class MainNavigationScreen extends StatelessWidget {
   });
 
   void _onTap(int index) {
-    // berpindah branch tab sambil menjaga state halaman sebelumnya
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,
@@ -27,6 +26,7 @@ class MainNavigationScreen extends StatelessWidget {
         currentIndex: navigationShell.currentIndex,
         onTap: _onTap,
         selectedItemColor: Colors.teal,
+        type: BottomNavigationBarType.fixed, 
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.account_balance_wallet_outlined),
@@ -37,6 +37,11 @@ class MainNavigationScreen extends StatelessWidget {
             icon: Icon(Icons.receipt_long_outlined),
             activeIcon: Icon(Icons.receipt_long),
             label: 'Transaksi',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profil',
           ),
         ],
       ),

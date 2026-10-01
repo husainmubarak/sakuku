@@ -7,17 +7,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../widgets/main_navigation_screen.dart';
 import '../../features/auth/presentation/screens/auth_screen.dart';
-import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/summary/presentation/screens/summary_screen.dart';
 import '../../features/transaction/presentation/screens/transaction_screen.dart';
 import '../../features/transaction/presentation/screens/add_transaction_screen.dart';
+import '../../features/profile/presentation/screens/profile_screen.dart'; // Import ProfileScreen
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  // Mendengarkan perubahan status login
-  final authState = ref.watch(authStateProvider);
-
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/summary',
@@ -25,12 +22,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final session = Supabase.instance.client.auth.currentSession;
       final isAuthRoute = state.matchedLocation == '/auth';
 
-      if (session == null && !isAuthRoute) {
-        return '/auth'; // Jika belum login, redirect ke /auth
-      }
-      if (session != null && isAuthRoute) {
-        return '/summary'; // Jika sudah login, redirect ke /summary
-      }
+      if (session == null && !isAuthRoute) return '/auth';
+      if (session != null && isAuthRoute) return '/summary';
       return null;
     },
     routes: [
@@ -44,6 +37,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return MainNavigationScreen(navigationShell: navigationShell);
         },
         branches: [
+          // Branch 1: Ringkasan
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -53,12 +47,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+
+          // Branch 2: Transaksi
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/transactions',
                 name: 'transactions',
                 builder: (context, state) => const TransactionScreen(),
+              ),
+            ],
+          ),
+
+          // Branch 3: Profil
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile',
+                name: 'profile',
+                builder: (context, state) => const ProfileScreen(),
               ),
             ],
           ),
