@@ -17,20 +17,26 @@ class TransactionModel {
     required this.date,
   });
 
-  // Method copyWith untuk immutability saat memperbarui data
-  TransactionModel copyWith({
-    String? id,
-    String? title,
-    double? amount,
-    TransactionType? type,
-    DateTime? date,
-  }) {
+  // Dari Supabase JSON ke Dart Object
+  factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      amount: amount ?? this.amount,
-      type: type ?? this.type,
-      date: date ?? this.date,
+      id: json['id'] as String,
+      title: json['title'] as String,
+      amount: (json['amount'] as num).toDouble(),
+      type: json['type'] == 'income'
+          ? TransactionType.income
+          : TransactionType.expense,
+      date: DateTime.parse(json['created_at'] as String),
     );
+  }
+
+  // Dari Dart Object ke JSON Supabase
+  Map<String, dynamic> toJson(String userId) {
+    return {
+      'user_id': userId,
+      'title': title,
+      'amount': amount,
+      'type': type == TransactionType.income ? 'income' : 'expense',
+    };
   }
 }

@@ -3,8 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../widgets/main_navigation_screen.dart';
+import '../../features/auth/presentation/screens/auth_screen.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/summary/presentation/screens/summary_screen.dart';
 import '../../features/transaction/presentation/screens/transaction_screen.dart';
 import '../../features/transaction/presentation/screens/add_transaction_screen.dart';
@@ -12,17 +15,35 @@ import '../../features/transaction/presentation/screens/add_transaction_screen.d
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final appRouterProvider = Provider<GoRouter>((ref) {
+  // Mendengarkan perubahan status login
+  final authState = ref.watch(authStateProvider);
+
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/summary',
+    redirect: (context, state) {
+      final session = Supabase.instance.client.auth.currentSession;
+      final isAuthRoute = state.matchedLocation == '/auth';
+
+      if (session == null && !isAuthRoute) {
+        return '/auth'; // Jika belum login, redirect ke /auth
+      }
+      if (session != null && isAuthRoute) {
+        return '/summary'; // Jika sudah login, redirect ke /summary
+      }
+      return null;
+    },
     routes: [
-      // 1. StatefulShellRoute untuk Tab BottomNavigationBar
+      GoRoute(
+        path: '/auth',
+        name: 'auth',
+        builder: (context, state) => const AuthScreen(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return MainNavigationScreen(navigationShell: navigationShell);
         },
         branches: [
-          // Branch Tab 1: Ringkasan
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -32,8 +53,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-
-          // Branch Tab 2: Transaksi
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -45,8 +64,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-
-      // 2. Route Terpisah di luar Shell (untuk Form Tambah Transaksi)
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: '/add-transaction',
